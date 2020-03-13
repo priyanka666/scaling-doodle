@@ -100,7 +100,7 @@ class Family(object):
             father = member_node.get_father()
             wives_of_siblings = []
             if father:
-                wives_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Male']
+                wives_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Male' and child.spouse]
             spouse = member_node.spouse
             spouse_sisters = []
             if spouse:
@@ -114,12 +114,13 @@ class Family(object):
             father = member_node.get_father()
             husbands_of_siblings = []
             if father:
-                husbands_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Female']
+                husbands_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Female' and child.spouse]
             spouse = member_node.spouse
-            spouse_father = spouse.get_father()
             spouse_brothers = []
-            if spouse_father:
-                spouse_brothers = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Male']
+            if spouse:
+              spouse_father = spouse.get_father()
+              if spouse_father:
+                  spouse_brothers = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Male']
             return husbands_of_siblings + spouse_brothers
 
         if relationship_type == 'Son':
@@ -133,6 +134,7 @@ class Family(object):
             if not father:
                 return []
             return [child for child in father.children if member_node.name != child.name]
+        print "Please enter Valid Relationship Type"
 
     def is_parent(self, mother, kid):
         """
