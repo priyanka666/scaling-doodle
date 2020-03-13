@@ -13,37 +13,42 @@ class Family(object):
         self.root = Member(founder, gender)
         self.names_to_nodes[founder] = self.root
 
-    def set_children(self, mother, list_of_children):
+    def add_spouse(self, member_1_name, member_1_gender, member_2_name, member_2_gender):
+        member_1 = self.names_to_nodes.get(member_1_name, None)
+        if not member_1:
+            member_1 = Member(member_1_name, member_1_gender)
+            self.names_to_nodes[member_1_name] = member_1
+        member_2 = self.names_to_nodes.get(member_2_name, None)
+        if not member_2:
+            member_2 = Member(member_2_name, member_2_gender)
+            self.names_to_nodes[member_2_name] = member_2
+
+        member_1.spouse = member_2
+        member_2.spouse = member_1
+
+    def set_children(self, mother, list_of_tuple_of_children_and_gender):
         """
         Set all children of the mother.
         Keyword arguments:
         mother -- mother's name as a string
-        list_of_children -- children names as strings
+        list_of_tuple_of_children_and_gender -- [child1, "Male", "child2", "Female]
         """
-        # convert name to Member node (should check for validity)
-        mom_node = self.names_to_nodes[mother]
-        # add each child
-        for c in list_of_children:
-            # create Member node for a child
-            c_member = Member(c)
-            # remember its name to node mapping
-            self.names_to_nodes[c] = c_member
-            # set child's parent
-            c_member.add_mother(mom_node)
-            # set the parent's child
-            mom_node.add_child(c_member)
-
-    def add_child(self, parent, child, child_gender):
-        parent_node = self.names_to_nodes.get(parent, None)
+        parent_node = self.names_to_nodes.get(mother, None)
         if not parent_node:
-            return "PERSON_NOT_FOUND"
+            raise Exception("PERSON_NOT_FOUND")
         if not parent_node.can_add_child():
             # As parent is not female child addition is failed
-            return "CHILD_ADDITION_FAILED"
+            raise Exception("CHILD_ADDITION_FAILED")
 
+        for c in list_of_tuple_of_children_and_gender:
+            self._add_child(mother, c[0], c[1])
+
+    def _add_child(self, parent, child, child_gender):
+        parent_node = self.names_to_nodes[parent]
         mother = parent_node
         father = parent_node.spouse
         child_node = Member(child, child_gender)
+        self.names_to_nodes[child] = child_node
         child_node.add_mother(mother)
         child_node.add_father(father)
 
@@ -53,7 +58,8 @@ class Family(object):
     def get_relationship(self, member, relationship_type):
         member_node = self.names_to_nodes.get(member, None)
         if not member_node:
-            return "PERSON_NOT_FOUND"
+            print "PERSON_NOT_FOUND"
+            return []
         if relationship_type == 'Paternal-Uncle':
             father = member_node.get_father()
             if not father:
@@ -96,10 +102,12 @@ class Family(object):
             if father:
                 wives_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Male']
             spouse = member_node.spouse
-            spouse_father = spouse.get_father()
             spouse_sisters = []
-            if spouse_father:
-                spouse_sisters = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Female']
+            if spouse:
+                spouse_father = spouse.get_father()
+                spouse_sisters = []
+                if spouse_father:
+                    spouse_sisters = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Female']
             return wives_of_siblings + spouse_sisters
 
         if relationship_type == 'Brother-In-Law':
