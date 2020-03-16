@@ -1,10 +1,12 @@
 from family_class import Family
-from anytree import Node, RenderTree
+import sys
 
-if __name__ == '__main__':
+
+def seed_exisiting_family():
     fam = Family("King Shan", "Male")
     fam.add_spouse("King Shan", "Male", "Queen Anga", "Female")
-    fam.set_children("Queen Anga", [("Chit", "Male"), ("Ish", "Male"), ("Vich", "Male"), ("Aras", "Male"), ("Satya", ("Female"))])
+    fam.set_children("Queen Anga",
+                     [("Chit", "Male"), ("Ish", "Male"), ("Vich", "Male"), ("Aras", "Male"), ("Satya", ("Female"))])
     fam.add_spouse("Chit", "Male", "Amba", "Female")
     fam.add_spouse("Vich", "Male", "Lika", "Female")
     fam.add_spouse("Aras", "Male", "Chitra", "Female")
@@ -25,26 +27,42 @@ if __name__ == '__main__':
     fam.add_spouse("Vyas", "Male", "Krpi", "Female")
     fam.set_children("Satvy", [("Vasa", "Male")])
     fam.set_children("Krpi", [("Kriya", "Male"), ("Krithi", "Female")])
+    return fam
 
-    fam.set_children("Chitra", [("Aria", "Female")])
 
-    list_of_members = fam.get_relationship("Pjali", 'Son')
-    if list_of_members:
-      print " ".join([member.name for member in list_of_members])
+def add_child(family_instance, parent_name, child_name, child_gender):
+    try:
+        family_instance.set_children(parent_name, [(child_name, child_gender)])
+        print "CHILD_ADDITION_SUCCEEDED"
+    except Exception as e:
+        print e.message
 
-    list_of_members = fam.get_relationship("Vasa", 'Siblings')
-    if list_of_members:
-      print " ".join([member.name for member in list_of_members])
 
-    list_of_members = fam.get_relationship("Atya", 'Sister-In-Law')
-    if list_of_members:
-      print " ".join([member.name for member in list_of_members])
+def get_relationship(family_instance, person_name, relation_type):
+    try:
+        list_of_members = family_instance.get_relationship(person_name, relation_type)
+        if list_of_members:
+            print " ".join([member.name for member in list_of_members])
+        else:
+            print None
+    except Exception as e:
+        print e.message
 
-    list_of_members = fam.get_relationship("Lavnya", 'Maternal-Aunt')
-    if list_of_members:
-      print " ".join([member.name for member in list_of_members])
 
-    list_of_members = fam.get_relationship("Aria", 'Siblings')
-    if list_of_members:
-      print " ".join([member.name for member in list_of_members])
-
+if __name__ == '__main__':
+    fam = seed_exisiting_family()
+    with open(sys.argv[1], 'r') as fp:
+        for cnt, line in enumerate(fp):
+            content = line.strip("\n").split(" ")
+            print content
+            todo_fn = content[0]
+            if todo_fn == 'ADD_CHILD':
+                parent_name = content[1]
+                child_name = content[2]
+                child_gender = content[3]
+                add_child(fam, parent_name, child_name, child_gender)
+                continue
+            if todo_fn == 'GET_RELATIONSHIP':
+                person_name = content[1]
+                relation_type = content[2]
+                get_relationship(fam, person_name, relation_type)
