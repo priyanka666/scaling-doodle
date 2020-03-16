@@ -58,8 +58,7 @@ class Family(object):
     def get_relationship(self, member, relationship_type):
         member_node = self.names_to_nodes.get(member, None)
         if not member_node:
-            print "PERSON_NOT_FOUND"
-            return []
+            raise Exception("PERSON_NOT_FOUND")
         if relationship_type == 'Paternal-Uncle':
             father = member_node.get_father()
             if not father:
@@ -118,9 +117,9 @@ class Family(object):
             spouse = member_node.spouse
             spouse_brothers = []
             if spouse:
-              spouse_father = spouse.get_father()
-              if spouse_father:
-                  spouse_brothers = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Male']
+                spouse_father = spouse.get_father()
+                if spouse_father:
+                    spouse_brothers = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Male']
             return husbands_of_siblings + spouse_brothers
 
         if relationship_type == 'Son':
@@ -134,7 +133,7 @@ class Family(object):
             if not father:
                 return []
             return [child for child in father.children if member_node.name != child.name]
-        print "Please enter Valid Relationship Type"
+        raise Exception("Please enter Valid Relationship Type")
 
     def is_parent(self, mother, kid):
         """
