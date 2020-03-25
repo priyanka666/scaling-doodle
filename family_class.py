@@ -1,4 +1,9 @@
 from member_class import Member
+from constants import PERSON_NOT_FOUND
+from constants import CHILD_ADDITION_FAILED
+from constants import CHILD_ADDITION_SUCCEEDED
+from constants import NONE_FOUND
+from constants import INVALID_RELATION_TYPE
 
 
 class Family(object):
@@ -35,170 +40,91 @@ class Family(object):
         """
         parent_node = self.names_to_nodes.get(mother, None)
         if not parent_node:
-            raise Exception("PERSON_NOT_FOUND")
+            raise Exception(PERSON_NOT_FOUND)
         if not parent_node.can_add_child():
             # As parent is not female child addition is failed
-            raise Exception("CHILD_ADDITION_FAILED")
+            raise Exception(CHILD_ADDITION_FAILED)
 
         for c in list_of_tuple_of_children_and_gender:
             self._add_child(mother, c[0], c[1])
 
     def _add_child(self, parent, child, child_gender):
-        parent_node = self.names_to_nodes[parent]
-        mother = parent_node
-        father = parent_node.spouse
+        # creating new child node
         child_node = Member(child, child_gender)
         self.names_to_nodes[child] = child_node
-        child_node.add_mother(mother)
-        child_node.add_father(father)
+        # fetching existing parent node
+        parent_node = self.names_to_nodes[parent]
+        parent_node.add_child(child_node)
 
-        mother.add_child(child_node)
-        father.add_child(child_node)
-
-    def get_relationship(self, member, relationship_type):
+    def _get_relationship(self, member, relationship_type):
         member_node = self.names_to_nodes.get(member, None)
         if not member_node:
-            raise Exception("PERSON_NOT_FOUND")
+            raise Exception(PERSON_NOT_FOUND)
         if relationship_type == 'Paternal-Uncle':
-            father = member_node.get_father()
+            father = member_node.father
             if not father:
                 return []
-            parent = father.get_parent()
-            if not parent:
-                return []
-            return [child for child in parent.children if (child.gender == 'Male') and (father.name != child.name)]
+            return father.get_brothers()
 
         if relationship_type == 'Maternal-Uncle':
-            mother = member_node.get_mother()
+            mother = member_node.mother
             if not mother:
                 return []
-            parent = mother.get_parent()
-            if not parent:
-                return []
-            return [child for child in parent.children if (child.gender == 'Male')]
+            return mother.get_brothers()
 
         if relationship_type == 'Paternal-Aunt':
-            father = member_node.get_father()
+            father = member_node.father
             if not father:
                 return []
-            parent = father.get_parent()
-            if not parent:
-                return []
-            return [child for child in parent.children if (child.gender == 'Female')]
+            return father.get_sisters()
 
         if relationship_type == 'Maternal-Aunt':
-            mother = member_node.get_mother()
+            mother = member_node.mother
             if not mother:
                 return []
-            parent = mother.get_parent()
-            if not parent:
-                return []
-            return [child for child in parent.children if (child.gender == 'Female') and (mother.name != child.name)]
+            return mother.get_sisters()
 
         if relationship_type == 'Sister-In-Law':
-            father = member_node.get_father()
-            wives_of_siblings = []
-            if father:
-                wives_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Male' and child.spouse]
+            brothers = member_node.get_brothers()
+            wives_of_siblings = [brother.spouse for brother in brothers if brother.spouse]
+
             spouse = member_node.spouse
-            spouse_sisters = []
-            if spouse:
-                spouse_father = spouse.get_father()
-                spouse_sisters = []
-                if spouse_father:
-                    spouse_sisters = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Female']
+            spouse_sisters = spouse.get_sisters() if spouse else []
+
             return wives_of_siblings + spouse_sisters
 
         if relationship_type == 'Brother-In-Law':
-            father = member_node.get_father()
-            husbands_of_siblings = []
-            if father:
-                husbands_of_siblings = [child.spouse for child in father.children if member_node.name != child.name and child.gender == 'Female' and child.spouse]
+            sisters = member_node.get_sisters()
+            husbands_of_siblings = [sister.spouse for sister in sisters if sister.spouse]
+
             spouse = member_node.spouse
-            spouse_brothers = []
-            if spouse:
-                spouse_father = spouse.get_father()
-                if spouse_father:
-                    spouse_brothers = [child for child in spouse_father.children if member_node.name != child.name and child.gender == 'Male']
+            spouse_brothers = spouse.get_brothers() if spouse else []
             return husbands_of_siblings + spouse_brothers
 
         if relationship_type == 'Son':
-            return [child for child in member_node.children if child.gender == 'Male']
+            return member_node.get_son()
 
         if relationship_type == 'Daughter':
-            return [child for child in member_node.children if child.gender == 'Female']
+            return member_node.get_daughter()
 
         if relationship_type == 'Siblings':
-            father = member_node.get_father()
-            if not father:
-                return []
-            return [child for child in father.children if member_node.name != child.name]
-        raise Exception("Please enter Valid Relationship Type")
+            return member_node.get_siblings()
 
-    def is_parent(self, mother, kid):
-        """
-        Returns True or False whether mother is parent of kid.
-        Keyword arguments:
-        mother -- string of mother's name
-        kid -- string of kid's name
-        """
-        mom_node = self.names_to_nodes[mother]
-        child_node = self.names_to_nodes[kid]
-        return child_node.is_parent(mom_node)
+        raise Exception(INVALID_RELATION_TYPE)
 
-    def is_child(self, kid, mother):
-        """
-        Returns True or False whether kid is child of mother.
-        Keyword arguments:
-        kid -- string of kid's name
-        mother -- string of mother's name
-        """
-        mom_node = self.names_to_nodes[mother]
-        child_node = self.names_to_nodes[kid]
-        return mom_node.is_child(child_node)
+    def add_child(self, parent_name, child_name, child_gender):
+        try:
+            self.set_children(parent_name, [(child_name, child_gender)])
+            return CHILD_ADDITION_SUCCEEDED
+        except Exception as e:
+            return e.__str__()
 
-    def cousin(self, a, b):
-        """
-        Returns a tuple of (the cousin type, degree removed)
-        cousin type is an integer that is -1 if a and b
-        are the same node or if one is the direct descendent
-        of the other.  Otherwise, cousin type is 0 or greater,
-        representing the shorter distance to their common
-        ancestor as described in the exercises above.
-        degree removed is the distance to the common ancestor
-        Keyword arguments:
-        a -- string that is the name of a
-        b -- string that is the name of b
-        """
-        ## YOUR CODE HERE ####
-        a_node = self.names_to_nodes[a]
-        b_node = self.names_to_nodes[b]
-
-        def create_branch(node):
-            branch = [node]
-            parent = node.get_parent()
-
-            while parent:
-                branch.append(parent)
-                parent = parent.get_parent()
-            return branch
-
-        if a_node.name == b_node.name:
-            return -1, 0
-        elif a_node.is_child(b_node) or b_node.is_child(a_node):
-            return -1, 0
-
-        a_branch = create_branch(a_node)
-        b_branch = create_branch(b_node)
-
-        b_parent_index = 0
-        for a_parent_index, node in enumerate(a_branch):
-            try:
-              b_parent_index = b_branch.index(node)
-              break
-            except ValueError:
-              pass
-
-        cousin_type = max(a_parent_index, b_parent_index)
-        degree_removed = abs(a_parent_index - b_parent_index)
-        return cousin_type, degree_removed
+    def get_relationship(self, person_name, relation_type):
+        try:
+            list_of_members = self._get_relationship(person_name, relation_type)
+            if list_of_members:
+                return " ".join([member.name for member in list_of_members])
+            else:
+                return NONE_FOUND
+        except Exception as e:
+            return e.__str__()
