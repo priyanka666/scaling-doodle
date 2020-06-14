@@ -209,28 +209,28 @@ if __name__ == '__main__':
   ## The first test case should print out:
   ## 'b' is a zeroth cousin 0 removed from 'c'
   t, r = f.cousin("b", "c")
-  print "'b' is a", words[t], "cousin", r, "removed from 'c'"
+  print ("'b' is a", words[t], "cousin", r, "removed from 'c'")
 
   ## For the remaining test cases, use the graph to figure out what should
   ## be printed, and make sure that your code prints out the appropriate values.
 
   t, r = f.cousin("d", "f")
-  print "'d' is a", words[t], "cousin", r, "removed from 'f'"
+  print ("'d' is a", words[t], "cousin", r, "removed from 'f'")
 
   t, r = f.cousin("i", "n")
-  print "'i' is a", words[t], "cousin", r, "removed from 'n'"
+  print ("'i' is a", words[t], "cousin", r, "removed from 'n'")
 
   t, r = f.cousin("q", "e")
-  print "'q' is a", words[t], "cousin", r, "removed from 'e'"
+  print ("'q' is a", words[t], "cousin", r, "removed from 'e'")
 
   t, r = f.cousin("h", "c")
-  print "'h' is a", words[t], "cousin", r, "removed from 'c'"
+  print ("'h' is a", words[t], "cousin", r, "removed from 'c'")
 
   t, r = f.cousin("h", "a")
-  print "'h' is a", words[t], "cousin", r, "removed from 'a'"
+  print ("'h' is a", words[t], "cousin", r, "removed from 'a'")
 
   t, r = f.cousin("h", "h")
-  print "'h' is a", words[t], "cousin", r, "removed from 'h'"
+  print ("'h' is a", words[t], "cousin", r, "removed from 'h'")
 
   t, r = f.cousin("a", "a")
-  print "'a' is a", words[t], "cousin", r, "removed from 'a'"
+  print ("'a' is a", words[t], "cousin", r, "removed from 'a'")

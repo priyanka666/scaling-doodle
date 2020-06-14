@@ -50,7 +50,7 @@ class Family(object):
 
     def _add_child(self, parent, child, child_gender):
         # creating new child node
-        child_node = Member(child, child_gender.upper())
+        child_node = Member(child, child_gender)
         self.names_to_nodes[child] = child_node
         # fetching existing parent node
         parent_node = self.names_to_nodes[parent]
